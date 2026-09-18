@@ -1,5 +1,45 @@
 # Changelog — DoorSign
 
+## Version 1.3 — Energie / Batterielaufzeit
+
+### Firmware-Optimierungen (Deep-Sleep-Pfad)
+- **WLAN-Schnellverbindung** — BSSID + Kanal des APs werden im RTC-RAM
+  gecacht; beim Aufwachen verbindet der ESP32 ohne AP-Scan (`WiFi.begin`
+  mit Kanal/BSSID). Fällt bei Fehlschlag sauber auf den normalen
+  Scan-Connect zurück. Spart ~2–3 s Funkzeit pro Wake
+  (`WifiManager`, `DeepSleepManager`, `DoorSign.ino`)
+- **NTP nur ~1×/Tag** — die ESP32-RTC hält die Zeit über den Deep Sleep;
+  NTP wird nur re-synchronisiert, wenn `NTP_RESYNC_INTERVAL_SEC` (24 h)
+  überschritten ist oder die Zeit ungültig ist. Spart ~1 s pro Wake
+  (`TimeManager::markSyncedIfValid`, `DoorSign.ino`)
+- **Update-Intervall auf 20 min** (`config.h`)
+- **Minutengenaues Aktivfenster** — `ACTIVE_START_MIN`/`ACTIVE_END_MIN`
+  statt voller Stunden; Standard **07:55–17:00** Mo–Fr (Schild ist um 08:00
+  aktuell, letzter Abgleich 17:00 → spart die 17–18-Uhr-Stunde)
+- **RTC-Prüfsumme** deckt jetzt alle RTC-Felder ab (nicht nur `bootCount`) —
+  korrupter Cache führt zu sicherem Fallback statt Fehlverhalten
+
+### Dokumentation
+- **README „Stromversorgung“** als Referenzaufbau neu gefasst: Teileliste mit
+  Chipbezeichnungen, Auswahlkriterium für Ersatzmodule (Iq im einstelligen
+  µA-Bereich, 3,3 V direkt) und ein Abschnitt, was ausdrücklich *nicht* nötig ist.
+- **README „Energieverbrauch“** trennt jetzt gemessene von gerechneten Werten und
+  nennt alle Annahmen. Die frühere Hochrechnung (bis „760 Tage“) setzte 0,01 mA
+  Ruhestrom an — den ESP32 ohne Peripherie — und lag um rund eine Größenordnung
+  zu hoch.
+
+### Hinweis Hardware
+- Die Firmware-Hebel dieser Version wirken erst, wenn die Stromversorgung stimmt:
+  Den Ruhestrom bestimmt sie, nicht der ESP32. Ein LM2596-Modul (~5 mA) ist durch
+  einen Low-Iq-Wandler zu ersetzen (z. B. TPS62827) und die 3,3 V direkt auf den
+  `3V3`-Pin zu führen — siehe Referenzaufbau im README.
+- **Korrektur gegenüber einer früheren Fassung dieses Eintrags:** Dort stand, die
+  Always-on-Chips des Waveshare-Boards (CP2102/LDO/LED) müssten entfernt werden,
+  sonst bleibe der Ruhestrom im mA-Bereich. Die Messung widerlegt das: Mit
+  TPS62827 und Einspeisung auf `3V3` wurden **0,4 mA am unveränderten Board**
+  erreicht (zuvor ~12,5 mA). Der Board-LDO ist durch die 3V3-Einspeisung umgangen,
+  und der CP2102 hängt an USB-5 V, die im Akkubetrieb nicht anliegt.
+
 ## Version 1.2 — Robustheit
 
 ### Behobene Fehler
