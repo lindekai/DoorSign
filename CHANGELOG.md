@@ -19,11 +19,26 @@
 - **RTC-Prüfsumme** deckt jetzt alle RTC-Felder ab (nicht nur `bootCount`) —
   korrupter Cache führt zu sicherem Fallback statt Fehlverhalten
 
+### Dokumentation
+- **README „Stromversorgung“** als Referenzaufbau neu gefasst: Teileliste mit
+  Chipbezeichnungen, Auswahlkriterium für Ersatzmodule (Iq im einstelligen
+  µA-Bereich, 3,3 V direkt) und ein Abschnitt, was ausdrücklich *nicht* nötig ist.
+- **README „Energieverbrauch“** trennt jetzt gemessene von gerechneten Werten und
+  nennt alle Annahmen. Die frühere Hochrechnung (bis „760 Tage“) setzte 0,01 mA
+  Ruhestrom an — den ESP32 ohne Peripherie — und lag um rund eine Größenordnung
+  zu hoch.
+
 ### Hinweis Hardware
-- Für echte µA-Deep-Sleep-Werte muss die Stromversorgung passen: LM2596
-  (~5 mA Ruhestrom) durch einen Low-Iq-Wandler ersetzen (z. B. TPS62827),
-  und die Always-on-Chips des Waveshare-Boards (CP2102/LDO/LED) entfernen.
-  Ohne diese Hardware-Änderung bleibt der Ruhestrom im mA-Bereich.
+- Die Firmware-Hebel dieser Version wirken erst, wenn die Stromversorgung stimmt:
+  Den Ruhestrom bestimmt sie, nicht der ESP32. Ein LM2596-Modul (~5 mA) ist durch
+  einen Low-Iq-Wandler zu ersetzen (z. B. TPS62827) und die 3,3 V direkt auf den
+  `3V3`-Pin zu führen — siehe Referenzaufbau im README.
+- **Korrektur gegenüber einer früheren Fassung dieses Eintrags:** Dort stand, die
+  Always-on-Chips des Waveshare-Boards (CP2102/LDO/LED) müssten entfernt werden,
+  sonst bleibe der Ruhestrom im mA-Bereich. Die Messung widerlegt das: Mit
+  TPS62827 und Einspeisung auf `3V3` wurden **0,4 mA am unveränderten Board**
+  erreicht (zuvor ~12,5 mA). Der Board-LDO ist durch die 3V3-Einspeisung umgangen,
+  und der CP2102 hängt an USB-5 V, die im Akkubetrieb nicht anliegt.
 
 ## Version 1.2 — Robustheit
 
