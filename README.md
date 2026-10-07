@@ -388,21 +388,25 @@ Gemessene und gerechnete Werte sind hier bewusst getrennt.
 
 ### Gemessen
 
-Am Referenzaufbau oben, Stand 18.09.2026:
+Am Referenzaufbau oben, Stand 07.10.2026:
 
 | | früherer Aufbau | Referenzaufbau |
 |---|---|---|
 | Topologie | LiPo → Boost 5 V → Board-LDO → 3,3 V | LiPo → Buck → 3,3 V auf `3V3` |
 | Wandler | LM2596 (150 kHz) | TPS62827 (2,2 MHz, Iq ~4 µA) |
 | **Ruhestrom im Deep Sleep** | **~12,5 mA** | **~0,4 mA** |
-| Erreichte Laufzeit (3500 mAh) | ~3 Wochen | **≥65 Tage — Test läuft** |
+| Erreichte Laufzeit (3500 mAh) | ~3 Wochen | **83 Tage** (15.07.–06.10.2026) |
+| daraus mittlerer Verbrauch | ~6 mA | **~1,6 mA** (~38 mAh/Tag) |
 
 > **Messmittel:** Multimeter im mA-Bereich. Es erfasst den Mittelwert; kurze
 > Stromspitzen im Schlaf bleiben unsichtbar. Für die Größenordnung ausreichend,
 > für eine Optimierung unterhalb von 0,4 mA nicht.
 >
-> **Die Laufzeitangabe ist eine laufende Beobachtung** seit 15.07.2026, kein
-> abgeschlossener Test. Sie wird fortgeschrieben, sobald die Zelle leer ist.
+> **Laufzeittest:** eine Akkuladung, Dauerbetrieb im Deep-Sleep-Modus vom
+> 15.07.2026 bis 06.10.2026 — **83 Tage**, noch mit der Firmware vor v1.3. Der mittlere Verbrauch ist daraus
+> zurückgerechnet, mit ~90 % nutzbarer Kapazität (≈3150 mAh / 83 Tage).
+> Er liegt rund viermal über dem gemessenen Ruhestrom — der Ruhestrom allein
+> erklärt die Laufzeit also nicht, siehe [Abgleich mit der Messung](#abgleich-mit-der-messung).
 >
 > **Zum alten Aufbau:** Messwert (12,5 mA) und beobachtete Laufzeit (~3 Wochen)
 > passen nicht exakt zusammen — aus 3 Wochen folgt ein mittlerer Strom von eher
@@ -434,7 +438,7 @@ Kapazität.
 | Wake-Zyklen | ~20 × 0,2 mAh | ~4,0 |
 | **Summe** | | **~13,6** |
 
-→ rund **230 Tage, also 6–8 Monate**.
+→ rechnerisch rund **230 Tage**. **Erreicht wurden 83 Tage** — siehe unten.
 
 Wirkung des Update-Intervalls bei sonst gleichen Annahmen:
 
@@ -455,6 +459,27 @@ in der Hardware, nicht in der Konfiguration.
 > Eine frühere Fassung dieses Abschnitts nannte bis zu „760 Tage bei 30 Minuten“.
 > Sie setzte 0,01 mA Ruhestrom an — also den ESP32 allein, ohne die Peripherie —
 > und lag dadurch um rund eine Größenordnung zu hoch.
+
+### Abgleich mit der Messung
+
+Der Laufzeittest (83 Tage) bleibt um den Faktor ~2,8 hinter der Hochrechnung
+(~230 Tage) zurück. Statt ~13,6 mAh/Tag wurden im Mittel ~38 mAh/Tag verbraucht;
+rund 24 mAh/Tag — entsprechend ~1 mA Dauerstrom — sind durch die Annahmen oben
+nicht erklärt. Die Ursache ist noch nicht geklärt. Infrage kommen:
+
+- **Ruhestrom höher als gemessen** — das Multimeter mittelt; Stromspitzen im
+  Schlaf und Anlaufströme des Wandlers erfasst es nicht.
+- **Wakes teurer als angesetzt** — der Test lief noch mit der Firmware vor v1.3:
+  15-Minuten-Intervall, Fenster 08–18 Uhr, WLAN-Verbindung mit AP-Scan und
+  NTP-Abgleich bei jedem Wake. Die Hochrechnung setzt dagegen v1.3 an. Dazu
+  kommen mögliche lange WLAN-Verbindungen oder Wiederholungen bei Fehlern.
+  Dieser Teil erklärt die Lücke nach grober Rechnung nur teilweise.
+- **Nutzbare Kapazität geringer** — Zelle unter Nennkapazität oder Abschaltung
+  deutlich oberhalb von 3,0 V.
+
+Bis zur Klärung gilt: **Die Hochrechnung ist zu optimistisch; belastbar ist der
+gemessene Wert von 83 Tagen.** Die Tabelle zum Update-Intervall zeigt weiterhin
+die relative Wirkung des Intervalls, nicht die absolute Laufzeit.
 
 ### PNG vs BMP
 
